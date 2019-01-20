@@ -7,6 +7,10 @@
 */
 var currentMode = 0;
 
+// These are global b/c otherwise I'd need to loop through every one every time
+// Necessary to check and make sure only one of these exists at once 
+var numBlue = 0, numRed = 0;
+
 document.addEventListener("DOMContentLoaded", function()
 {
     initializeGrid();
@@ -79,8 +83,14 @@ function addGridItemEventListeners(element)
 
                 if (!element.classList.contains("blue"))
                 {
+                    if (numBlue === 1)
+                    {
+                        removeItemsWithClass("blue");
+                    }
+
                     wipeElemBackgroundColor(element);
                     element.classList.toggle("blue");
+                    numBlue++;
                 }
 
                 break;
@@ -93,8 +103,15 @@ function addGridItemEventListeners(element)
 
                 if (!element.classList.contains("red"))
                 {
+                    // If one already exists, remove it 
+                    if (numRed === 1)
+                    {
+                        removeItemsWithClass("red");
+                    }
+
                     wipeElemBackgroundColor(element);
                     element.classList.toggle("red");
+                    numRed++;
                 }
 
                 break;
@@ -143,12 +160,27 @@ function wipeElemBackgroundColor(element)
     if (element.classList.contains("red"))
     {
         element.classList.toggle("red");
+        numRed--;
     }
 
     // Blue 
     if (element.classList.contains("blue"))
     {
         element.classList.toggle("blue");
+        numBlue--;
+    }
+}
+
+function removeItemsWithClass(className)
+{
+    let gridItems = document.querySelectorAll(".gridItem");
+
+    for (let i = 0; i < gridItems.length; i++)
+    {
+        if (gridItems[i].classList.contains(className))
+        {
+            wipeElemBackgroundColor(gridItems[i]);
+        }
     }
 }
 
