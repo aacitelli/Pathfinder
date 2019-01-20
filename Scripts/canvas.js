@@ -1,4 +1,13 @@
 /* 
+
+    Todo: 
+
+    Make it so you can click and drag. This worked alright when I tried it, but I encountered weird behavior with the red and blue 
+        blocks and I'm taking a mental break from that and working on other aspects of the project. 
+
+*/
+
+/* 
     Key: 
     0 = Erasing
     1 = Wall
@@ -42,10 +51,9 @@ function initializeGrid()
 function addGridItemEventListeners(element)
 {
     // If it's made a blue box 
-    element.addEventListener("mousedown", function()
+    element.addEventListener("click", function()
     {
         console.debug("Element click event fired.");
-
         switch(currentMode)
         {
             // If the user is in erase mode 
@@ -124,12 +132,6 @@ function addGridItemEventListeners(element)
             }
         }
     });
-
-    // If it's made a red box 
-
-    // If it's made a wall 
-
-    // If it's erased 
 }
 
 function wipeGrid()
@@ -220,4 +222,7 @@ function initializeButtonEventListeners()
         /* Todo - Implement this later once I finish all the grid setup stuff */
     });
 }
+
+
+
 
