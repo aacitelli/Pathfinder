@@ -4,6 +4,12 @@
   -webkit-box-sizing: border-box;
           box-sizing: border-box;
   font-family: "Montserrat", sans-serif;
+  -ms-user-select: none;
+      user-select: none;
+  -o-user-select: none;
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
 }
 
 /* Focus on this isn't with responsiveness; It's just a box. 
@@ -34,7 +40,6 @@
 .gridItem {
   width: 20px;
   height: 20px;
-  border: 1px solid black;
   margin: 0;
   margin-top: -4px;
   display: inline-block;

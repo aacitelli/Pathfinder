@@ -64,7 +64,7 @@ function addGridItemEventListeners(element)
     // If it's made a blue box 
     element.addEventListener("mouseenter", function()
     {
-        console.debug("Mouse Enter Event Fired.");
+        // console.debug("Mouse Enter Event Fired.");
 
         if (mouseIsDown)
         {
@@ -75,7 +75,7 @@ function addGridItemEventListeners(element)
     /* Todo - Combine above loop and this one into a function */
     element.addEventListener("click", function()
     {
-        console.debug("Click Event Fired.");
+        // console.debug("Click Event Fired.");
 
         colorElement(element);
     });
@@ -263,17 +263,21 @@ function initializeButtonEventListeners()
 
 */
 
+/* Todo - Fix bug where clicking on a border inverts the result of this */
+
 var mouseIsDown = false;
 
-document.addEventListener("mousedown", function()
+document.onmousedown = function()
 {
     mouseIsDown = true;
-});
+    console.debug("Mouse is currently down.");
+};
 
-document.addEventListener("mouseup", function()
+document.onmouseup = function()
 {
     mouseIsDown = false;
-});
+    console.debug("Mouse is currently up.");
+};
 
 
 
