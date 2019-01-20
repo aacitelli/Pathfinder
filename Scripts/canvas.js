@@ -73,8 +73,7 @@ function addGridItemEventListeners(element)
         }        
     });
 
-    /* Todo - Combine above loop and this one into a function */
-    element.addEventListener("click", function()
+    element.addEventListener("mousedown", function()
     {
         // console.debug("Click Event Fired.");
 
