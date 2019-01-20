@@ -4,6 +4,10 @@
   -webkit-box-sizing: border-box;
           box-sizing: border-box;
   font-family: "Montserrat", sans-serif;
+  /* Necessary to fix a really nasty error with the canvas JS code where the mouseup event
+        wasn't firing when the cursor encountered prohibited behavior */
+  /* Todo - Make this so this only affects the canvas and not any of the other text
+        that could normally be highlighted */
   -ms-user-select: none;
       user-select: none;
   -o-user-select: none;
@@ -40,6 +44,7 @@
 .gridItem {
   width: 20px;
   height: 20px;
+  border: .01px black solid;
   margin: 0;
   margin-top: -4px;
   display: inline-block;
