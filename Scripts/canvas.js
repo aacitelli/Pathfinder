@@ -48,12 +48,111 @@ function initializeGrid()
     }
 }
 
+/* Pressing Logic: 
+
+    "mouseenter" Event:
+
+        If mouse is pressed, fire coloring event for the current square. 
+    
+    "click" Event:
+
+        Accounts for edge case with mouseenter where it won't do it for the current square 
+
+*/
 function addGridItemEventListeners(element)
 {
     // If it's made a blue box 
+    element.addEventListener("mouseenter", function()
+    {
+        if (mouseIsDown)
+        {
+            console.debug("Element click event fired.");
+
+            switch(currentMode)
+            {
+                // If the user is in erase mode 
+                case 0:
+                {
+                    console.debug("User is currently in erase mode. Setting color to white.");
+
+                    if (!element.classList.contains("white"))
+                    {            
+                        wipeElemBackgroundColor(element);        
+                        element.classList.toggle("white");
+                    }
+
+                    break;
+                }
+
+                // If the user is in wall mode 
+                case 1:
+                {
+                    console.debug("User is currently in wall mode. Setting color to black.");
+
+                    if (!element.classList.contains("black"))
+                    {
+                        wipeElemBackgroundColor(element);
+                        element.classList.toggle("black");
+                    }
+
+                    break;
+                }
+
+                // If the user is in blue box mode 
+                case 2: 
+                {
+                    console.debug("User is currently in start block mode. Setting color to blue.");
+
+                    if (!element.classList.contains("blue"))
+                    {
+                        if (numBlue === 1)
+                        {
+                            removeItemsWithClass("blue");
+                        }
+
+                        wipeElemBackgroundColor(element);
+                        element.classList.toggle("blue");
+                        numBlue++;
+                    }
+
+                    break;
+                }
+
+                // If the user is in red box mode 
+                case 3:
+                {
+                    console.debug("User is currently in end block mode. Setting color to red.");
+
+                    if (!element.classList.contains("red"))
+                    {
+                        // If one already exists, remove it 
+                        if (numRed === 1)
+                        {
+                            removeItemsWithClass("red");
+                        }
+
+                        wipeElemBackgroundColor(element);
+                        element.classList.toggle("red");
+                        numRed++;
+                    }
+
+                    break;
+                }
+
+                default:
+                {
+                    console.debug("Current Mode not understood.");
+                    break;
+                }
+            }
+        }        
+    });
+
+    /* Todo - Combine above loop and this one into a function */
     element.addEventListener("click", function()
     {
         console.debug("Element click event fired.");
+
         switch(currentMode)
         {
             // If the user is in erase mode 
@@ -222,6 +321,30 @@ function initializeButtonEventListeners()
         /* Todo - Implement this later once I finish all the grid setup stuff */
     });
 }
+
+/* Pressing Logic: 
+
+    "mouseenter" Event:
+
+        If mouse is pressed, fire coloring event for the current square. 
+    
+    "click" Event:
+
+        Accounts for edge case with mouseenter where it won't do it for the current square 
+
+*/
+
+var mouseIsDown = false;
+
+document.addEventListener("mousedown", function()
+{
+    mouseIsDown = true;
+});
+
+document.addEventListener("mouseup", function()
+{
+    mouseIsDown = false;
+});
 
 
 
