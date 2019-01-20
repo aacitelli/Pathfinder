@@ -2,28 +2,64 @@
 
 <html lang="en">
 
-  <head>
+    <head>
 
-    <!-- Website Encoding -->
-    <meta charset="UTF-8">
+        <!-- Website Encoding -->
+        <meta charset="UTF-8">
 
-    <!-- Title - Shows up in top browser bar -->
-    <title>Anden Acitelli</title>
+        <!-- Title - Shows up in top browser bar -->
+        <title>Anden Acitelli</title>
 
-    <!-- Google Web Fonts -->
-    <!-- Format: //fonts.googleapis.com/css?family=font1|font2|etc -->
-    <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Montserrat" type="text/css">
+        <!-- Google Web Fonts -->
+        <!-- Format: //fonts.googleapis.com/css?family=font1|font2|etc -->
+        <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Montserrat" type="text/css">
 
-    <!-- Custom Stylesheet -->
-    <link rel="stylesheet" href="SassCSS/styles.css" type="text/css">
+        <!-- Custom Stylesheet -->
+        <link rel="stylesheet" href="SassCSS/styles.css" type="text/css">
 
-    <!-- Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-123034159-1"></script>
+        <!-- Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-123034159-1"></script>
 
-  </head>
+    </head>
 
-  <body>        
-  
-  </body>
+    <body>  
+
+        <!-- Container for the Page Elements  -->     
+        <div id="pageElementsContainer">
+
+            <!-- Introductory Information & Text -->
+            <div id="introInformationContainer">
+                <h1>Pathfinder</h1>
+                <p>Use the blue square to set a starting point, the red square to set an end point, and the black squares to make walls.</p>
+                <p>Modify the algorithm used via the selection menu.</p>
+                <p>A GitHub repo of the code for this can be found at <a href="https://github.com/aacitelli/Pathfinder">github.com/aacitelli/Pathfinder</a></p>
+            </div>
+
+            <!-- Canvas Used For Drawing -->
+            <div id="canvas"></div>
+
+            <!-- Buttons w/ Various Functionalities -->
+            <div id="optionsContainer">
+
+                <button id="blueSquareButton">Start Square</button>
+                <button id="redSquareButton">End Square</button>
+                <button id="blackSquareButton">Walls</button>
+
+                <!-- Selection for Algorithm Type -->
+                <select>
+                    <option value="volvo">Volvo</option>
+                    <option value="saab">Saab</option>
+                    <option value="vw">VW</option>
+                    <option value="audi" selected>Audi</option>
+                </select>
+
+                <!-- Actually starts the pathfinding -->
+                <button id="startButton">Pathfind!</button>
+
+            </div>
+
+        </div>
+
+    </body>
 
 </html>
