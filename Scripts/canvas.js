@@ -2,10 +2,13 @@
 
     Todo: 
 
-    Make it so you can click and drag. This worked alright when I tried it, but I encountered weird behavior with the red and blue 
-        blocks and I'm taking a mental break from that and working on other aspects of the project. 
+    Bugs:
 
-    Bug: If you click on an edge block, drag off of the canvas, then release, the block isn't updated. 
+        Bug-free AFAIK. 
+
+    Features: 
+
+        Implement more algorithms other than just Dijkstra's 
 
 */
 
@@ -55,7 +58,7 @@ function initializeGrid()
 
         If mouse is pressed, fire coloring event for the current square. 
     
-    "click" Event:
+    "mousedown" Event:
 
         Accounts for edge case with mouseenter where it won't do it for the current square 
 
