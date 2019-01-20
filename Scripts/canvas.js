@@ -309,7 +309,7 @@ function intuitivePathfinder()
     let gridItems = document.querySelectorAll(".gridItem");
 
     // Starts with a debug value so if the user doesn't put a start block, it's diagnosable
-    let startBlockIndex = getStartBlockIndex(gridItems);
+    startBlockIndex = getStartBlockIndex(gridItems);
 
     if (startBlockIndex === -1)
     {
@@ -328,6 +328,8 @@ function intuitivePathfinder()
     /* Starts the actual pathfinding process */  
     checkSurroundings(gridItems, startBlockIndex); 
 }
+
+var startBlockIndex; 
 
 function checkSurroundings(gridItems, currIndex)
 {
@@ -353,7 +355,11 @@ function checkSurroundings(gridItems, currIndex)
 
     // Making this a checked index and shading it in to signify so 
     checkedIndexes.push(currIndex);
-    gridItems[currIndex].classList.toggle("gray");
+
+    if (currIndex !== startBlockIndex)
+    {        
+        gridItems[currIndex].classList.toggle("gray");
+    }
 
     // * Checking for the goal 
 
