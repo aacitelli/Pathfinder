@@ -31,8 +31,6 @@ document.addEventListener("DOMContentLoaded", function()
 
 function initializeGrid()
 {
-    console.debug("Initializing 20x20 grid.");
-
     let canvas = document.getElementById("canvas");
 
     // Fills the canvas with boxes 
@@ -91,8 +89,6 @@ function colorElement(element)
         // If the user is in erase mode 
         case 0:
         {
-            console.debug("User is currently in erase mode. Setting color to white.");
-
             if (!element.classList.contains("white"))
             {            
                 wipeElemBackgroundColor(element);        
@@ -105,8 +101,6 @@ function colorElement(element)
         // If the user is in wall mode 
         case 1:
         {
-            console.debug("User is currently in wall mode. Setting color to black.");
-
             if (!element.classList.contains("black"))
             {
                 wipeElemBackgroundColor(element);
@@ -119,8 +113,6 @@ function colorElement(element)
         // If the user is in blue box mode 
         case 2: 
         {
-            console.debug("User is currently in start block mode. Setting color to blue.");
-
             if (!element.classList.contains("blue"))
             {
                 if (numBlue === 1)
@@ -139,8 +131,6 @@ function colorElement(element)
         // If the user is in red box mode 
         case 3:
         {
-            console.debug("User is currently in end block mode. Setting color to red.");
-
             if (!element.classList.contains("red"))
             {
                 // If one already exists, remove it 
@@ -159,7 +149,6 @@ function colorElement(element)
 
         default:
         {
-            console.debug("Current Mode not understood.");
             break;
         }
     }
@@ -333,12 +322,9 @@ var startBlockIndex;
 
 function checkSurroundings(gridItems, currIndex)
 {
-    console.debug("Current Index: " + currIndex);
-
     // This might not even be necessary but it's sorta here for safety 
     if (endBlockFound)
     {
-        console.log("End block has been found. Ceasing operations.");
         return 0;
     }
 
@@ -347,11 +333,9 @@ function checkSurroundings(gridItems, currIndex)
     //      difference is negligible and this is seemingly easier for me to implement 
     if (checkedIndexes.includes(currIndex))
     {        
-        console.log("Current block has already been checked.");
         return 0;
     }
 
-    console.debug("Index " + currIndex + " is non-checked.");
 
     // Making this a checked index and shading it in to signify so 
     checkedIndexes.push(currIndex);
@@ -371,7 +355,6 @@ function checkSurroundings(gridItems, currIndex)
         // This check has to be nested, otherwise an out of bounds error will occur 
         if (gridItems[currIndex - 1].classList.contains("red"))
         {            
-            console.debug("End block has been found.");
             endBlockFound = true;
             return 0;
         }
@@ -383,7 +366,6 @@ function checkSurroundings(gridItems, currIndex)
         // Checking right 
         if (gridItems[currIndex + 1].classList.contains("red"))
         {
-            console.debug("End block has been found.");
             endBlockFound = true;
             return 0;
         }
@@ -395,7 +377,6 @@ function checkSurroundings(gridItems, currIndex)
         // Checking up 
         if (gridItems[currIndex - 20].classList.contains("red"))
         {
-            console.debug("End block has been found.");
             endBlockFound = true;
             return 0;
         }
@@ -407,7 +388,6 @@ function checkSurroundings(gridItems, currIndex)
         // Checking down 
         if (gridItems[currIndex + 20].classList.contains("red"))
         {
-            console.debug("End block has been found.");
             endBlockFound = true;
             return 0;
         }
@@ -420,20 +400,13 @@ function checkSurroundings(gridItems, currIndex)
     {
         if (gridItems[currIndex - 1].classList.contains("black"))
         {
-            console.debug("Left block is a wall.");
             checkedIndexes.push(currIndex - 1);
         }
 
         else 
         {
-            console.debug("Checking left block.");
             setTimeout(checkSurroundings, 100, gridItems, currIndex - 1);
         }
-    }
-
-    else 
-    {
-        console.debug("Left block is in the leftmost column.");
     }
 
     // Checking Right  - Similar logic to above
@@ -443,20 +416,13 @@ function checkSurroundings(gridItems, currIndex)
         // Checking right 
         if (gridItems[currIndex + 1].classList.contains("black"))
         {
-            console.debug("Right block is a wall.");
             checkedIndexes.push(currIndex + 1);
         }
 
         else 
         {
-            console.debug("Checking right block.");
             setTimeout(checkSurroundings, 100, gridItems, currIndex + 1);
         }
-    }
-
-    else 
-    {
-        console.debug("Right block is in the rightmost column.");
     }
 
     // Checking Up - Similar logic to above
@@ -465,20 +431,13 @@ function checkSurroundings(gridItems, currIndex)
         // Checking up 
         if (gridItems[currIndex - 20].classList.contains("black"))
         {
-            console.debug("Upper block is a wall.");
             checkedIndexes.push(currIndex - 20);
         }
 
         else 
         {
-            console.debug("Checking upper block.");
             setTimeout(checkSurroundings, 100, gridItems, currIndex - 20);
         }
-    }
-
-    else 
-    {
-        console.debug("Upward block is in the top row.");
     }
 
     // Checking Down  - Similar logic to above
@@ -487,20 +446,13 @@ function checkSurroundings(gridItems, currIndex)
         // Checking down 
         if (gridItems[currIndex + 20].classList.contains("black"))
         {
-            console.debug("Downward block is a wall.");
             checkedIndexes.push(currIndex + 20);
         }
 
         else 
         {
-            console.debug("Checking downward block.");
             setTimeout(checkSurroundings, 100, gridItems, currIndex + 20);
         }
-    }
-
-    else 
-    {
-        console.debug("Downward block is in the bottom row.");
     }
 }
 
@@ -511,12 +463,10 @@ function getStartBlockIndex(gridItems)
     {
         if (gridItems[i].classList.contains("blue"))
         {
-            console.debug("Found start block at index " + i);
             return i;
         }
     }
 
-    console.debug("Did not find start block.");
     return -1;
 }
 
@@ -527,12 +477,10 @@ function getEndBlockIndex(gridItems)
     {
         if (gridItems[i].classList.contains("red"))
         {
-            console.debug("Found end block at index " + i);
             return i;
         }
     }
 
-    console.debug("Did not find end block.");
     return -1;
 }
 
