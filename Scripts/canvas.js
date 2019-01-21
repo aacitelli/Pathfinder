@@ -20,7 +20,9 @@
     3 = Red (End)
 */
 var currentDrawingMode = 0;
-var currentPathfindingAlgorithm = "basic";
+var currentPathfindingAlgorithm;
+
+
 
 // These are global b/c otherwise I'd need to loop through every one every time
 // Necessary to check and make sure only one of these exists at once 
@@ -246,11 +248,20 @@ function initializeButtonEventListeners()
     // Physically starts pathfinding 
     document.getElementById("startButton").addEventListener("click", function()
     {
+        currentPathfindingAlgorithm = document.getElementById("algorithmSelection").value;
+
         switch(currentPathfindingAlgorithm)
         {
             case "basic":
             {
-                intuitivePathfinder();
+                dijkstraPathfinder();
+                break;
+            }
+
+            case "aStar":
+            {
+                aStarPathfinder();
+                break;
             }
         }
     });
@@ -279,7 +290,7 @@ var checkedIndexes = [];
 // Represents a "hard stop" to the recursion because it's at the start of every one 
 var endBlockFound = false;
 
-function intuitivePathfinder()
+function dijkstraPathfinder()
 {
     // Resetting variables
     endBlockFound = false;
@@ -318,6 +329,176 @@ function intuitivePathfinder()
 
     /* Starts the actual pathfinding process */  
     checkSurroundings(gridItems, startBlockIndex); 
+}
+
+var startIndex, endIndex;
+
+// For usage with aStar pathfinder - Each node has cost values, etc. associated with it for heuristic reasons 
+class aStarNode
+{
+    aStarNode(distanceFromStart, distanceFromEnd)
+    {
+        this.distanceFromStart = distanceFromStart;
+        this.distanceFromEnd = distanceFromEnd;
+
+        this.totalCost = distanceFromStart + distanceFromEnd;
+    }
+}
+
+function aStarPathfinder()
+{
+    // Getting list of blocks 
+    let gridItems = document.querySelectorAll(".gridItem");
+
+    // Checking to make sure it's a valid grid
+    startIndex = getStartBlockIndex(gridItems);
+    endIndex = getEndBlockIndex(gridItems);
+
+    if (startIndex === -1)
+    {
+        alert("No start block!");
+        return 0;
+    }
+
+    else if (endIndex === -1)
+    {
+        alert("No end block!");
+        return 0;
+    }
+
+    let endBlockFound = false;
+
+    let nodesList = [];
+
+    // * Constructing a list of nodes beforehand and figuring out their distance beforehand 
+    // * Basically just holds more data than just the index would 
+    for (let i = 0; i < 400; i++)
+    {
+        nodesList.push(new aStarNode(getDistanceToStartFromIndex(i), getDistanceToEndFromIndex(i)));
+    }
+
+    let openNodes = [new aStarNode(0, getDistanceToEndFromIndex(startIndex))];
+    let closedNodes = [];
+
+    // Iterates through each block one by one 
+    while (!endBlockFound)
+    {
+        // Setting equal to what's basically a placeholder value that will likely get overwritten 
+        let currentLowestCostIndex = nodesList.indexOf(openNodes[0], 1);
+
+        // * Determining which one in openlist has the lowest cost 
+        for (let i = 0; i < nodesList.length; i++)
+        {
+            // ! nodesList[i] is apparently undefined here :^P 
+            if (openNodes.includes(nodesList[i]) && nodesList[i].totalCost < nodesList[currentLowestCostIndex].totalCost)
+            {
+                currentLowestCostIndex = i;
+            }
+        }
+
+        // * Making sure no repeats that are already in the closedList sneak in, and closing this one if it isn't already closed 
+        if (closedNodes.includes(nodesList[currentLowestCostIndex]))
+        {
+            continue;
+        }
+
+        else 
+        {
+            // This could also probably go at the end of the algorithm but here seems more organized 
+            closedNodes.push(nodesList[currentLowestCostIndex]);
+        }
+
+        console.debug("Current lowest index value: " + currentLowestCostIndex);
+
+        // * Adding the ones around the current node if they're valid to the openNodes queue 
+        // Making sure the leftmost one is valid 
+        if (currentLowestCostIndex % 20 !== 0)
+        {
+            // If it's not a wall, add it to the open list
+            if (!nodesList[currentLowestCostIndex - 1].classList.includes("black"))
+            {
+                openNodes.push(nodesList[currentLowestCostIndex - 1]);
+            }
+
+            // Otherwise, add it to the closed list 
+            else 
+            {
+                closedNodes.push(nodesList[currentLowestCostIndex - 1]);
+            }
+        }
+
+        // Making sure the rightmost one is valid
+        if ((currentLowestCostIndex + 1) % 20 !== 0)
+        {      
+            // If it's not a wall, add it to the open list
+            if (!nodesList[currentLowestCostIndex + 1].classList.includes("black"))
+            {
+                openNodes.push(nodesList[currentLowestCostIndex + 1]);
+            }
+
+            // Otherwise, add it to the closed list 
+            else 
+            {
+                closedNodes.push(nodesList[currentLowestCostIndex + 1]);
+            }
+        }
+
+        // Making sure the uppermost one is valid 
+        if(!(currentLowestCostIndex < 20))
+        {       
+            // If it's not a wall, add it to the open list
+            if (!nodesList[currentLowestCostIndex - 20].classList.includes("black"))
+            {
+                openNodes.push(nodesList[currentLowestCostIndex - 20]);
+            }
+
+            // Otherwise, add it to the closed list 
+            else 
+            {
+                closedNodes.push(nodesList[currentLowestCostIndex - 20]);
+            }
+        }
+
+        // Making sure the downmost one is valid 
+        if (!(currentLowestCostIndex >= 380))
+        {
+            // If it's not a wall, add it to the open list
+            if (!nodesList[currentLowestCostIndex + 20].classList.includes("black"))
+            {
+                openNodes.push(nodesList[currentLowestCostIndex + 20]);
+            }
+
+            // Otherwise, add it to the closed list 
+            else 
+            {
+                closedNodes.push(nodesList[currentLowestCostIndex + 20]);
+            }
+        }
+    }
+}
+
+function getDistanceToStartFromIndex(index)
+{
+    // Note - These are indexed by one, hence the occasional +1's 
+    let startIndexRow = (startIndex / 20) + 1;
+    let startIndexColumn = (startIndex % 20) + 1;
+
+    let passedIndexRow = (index / 20) + 1;
+    let passedIndexColumn = (index % 20) + 1;
+
+    return Math.sqrt(Math.pow(startIndexRow - passedIndexRow, 2) + Math.pow(startIndexColumn - passedIndexColumn, 2));
+}
+
+function getDistanceToEndFromIndex(index)
+{
+    // Note - These are indexed by one, hence the occasional +1's 
+    let endIndexRow = (endIndex / 20) + 1;
+    let endIndexColumn = (endIndex % 20) + 1;
+
+    let passedIndexRow = (index / 20) + 1;
+    let passedIndexColumn = (index % 20) + 1;
+
+    return Math.sqrt(Math.pow(endIndexRow - passedIndexRow, 2) + Math.pow(endIndexColumn - passedIndexColumn, 2));
 }
 
 var startBlockIndex; 
