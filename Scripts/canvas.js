@@ -342,7 +342,7 @@ class costNode
         this.distanceFromEnd = distanceFromEnd;
         this.originalIndex = originalIndex;
 
-        this.totalCost = this.distanceFromEnd;
+        this.totalCost = Math.pow(this.distanceFromEnd, 2);
     }
 }
 
@@ -439,11 +439,18 @@ function aStarPathfinder()
     let closedNodes = [];
     let isInClosedNodes;    
 
-    let escape = false;
          
     // * Main control loop that continues until an end block is found, selecting one block each time
     let timerLoop = setInterval(function()
     {
+        // In the case that it runs out of things to do 
+        if (openNodes.length === 0)
+        {
+            alert("Impossible maze!");
+            clearInterval(timerLoop);
+            return 0;
+        }
+
         console.log("Loop Iteration Start.");
 
         // * Getting the "cheapest" node 
@@ -463,7 +470,7 @@ function aStarPathfinder()
         openNodes.splice(openNodes.indexOf(costNodes[lowestCostIndex]), 1);
 
         // * Greying in the current node 
-        gridItems[lowestCostIndex].style.backgroundColor = "gray";
+        gridItems[lowestCostIndex].classList.toggle("gray");
 
         // Resetting closedNodes shutdown variable
         isInClosedNodes = false;
@@ -490,6 +497,7 @@ function aStarPathfinder()
 
             else if (gridItems[lowestCostIndex - 1].classList.contains("red"))
             {
+                endFound = true;
                 clearInterval(timerLoop);
                 return 0;
             }
@@ -524,6 +532,7 @@ function aStarPathfinder()
 
             else if (gridItems[lowestCostIndex + 1].classList.contains("red"))
             {
+                endFound = true;
                 clearInterval(timerLoop);
                 return 0;
             }
@@ -558,6 +567,7 @@ function aStarPathfinder()
 
             else if (gridItems[lowestCostIndex - 20].classList.contains("red"))
             {
+                endFound = true;
                 clearInterval(timerLoop);
                 return 0;
             }
@@ -592,7 +602,8 @@ function aStarPathfinder()
 
             else if (gridItems[lowestCostIndex + 20].classList.contains("red"))
             {
-                escape = true;
+                endFound = true;
+                clearInterval(timerLoop);
                 return 0;
             }
 
@@ -618,6 +629,7 @@ function aStarPathfinder()
         } 
 
     }, 100);
+
 }
 
 var startBlockIndex; 
