@@ -34,6 +34,7 @@ document.addEventListener("DOMContentLoaded", function()
     initializeButtonEventListeners();
 });
 
+// ! Drawing 
 function initializeGrid()
 {
     let canvas = document.getElementById("canvas");
@@ -54,17 +55,6 @@ function initializeGrid()
     }
 }
 
-/* Pressing Logic: 
-
-    "mouseenter" Event:
-
-        If mouse is pressed, fire coloring event for the current square. 
-    
-    "mousedown" Event:
-
-        Accounts for edge case with mouseenter where it won't do it for the current square 
-
-*/
 function addGridItemEventListeners(element)
 {
     // If it's made a blue box 
@@ -215,6 +205,21 @@ function removeItemsWithClass(className)
     }
 }
 
+// Necessary for certain dragging code to work correctly
+var mouseIsDown = false;
+document.onmousedown = function()
+{
+    mouseIsDown = true;
+    // console.debug("Mouse is currently down.");
+};
+
+document.onmouseup = function()
+{
+    mouseIsDown = false;
+    // console.debug("Mouse is currently up.");
+};
+
+// ! Buttons Below Canvas
 function initializeButtonEventListeners()
 {
     /* Button event listeners
@@ -267,27 +272,8 @@ function initializeButtonEventListeners()
     });
 }
 
-/* This code keeps track of whether the mouse is pressed or not - 
-    Necessary for dragging behavior to work correctly w/ the blue and red blocks */
-
-var mouseIsDown = false;
-document.onmousedown = function()
-{
-    mouseIsDown = true;
-    // console.debug("Mouse is currently down.");
-};
-
-document.onmouseup = function()
-{
-    mouseIsDown = false;
-    // console.debug("Mouse is currently up.");
-};
-
-// Tracks which blocks have been checked so that every iteration of the recursive function
-// doesn't recheck blocks and clog up an absolutely massive amount of resources
+// ! Dijkstra's Algorithm
 var checkedIndexes = [];
-
-// Represents a "hard stop" to the recursion because it's at the start of every one 
 var endBlockFound = false;
 
 function dijkstraPathfinder()
@@ -331,6 +317,146 @@ function dijkstraPathfinder()
     checkSurroundings(gridItems, startBlockIndex); 
 }
 
+
+var startBlockIndex; 
+
+function checkSurroundings(gridItems, currIndex)
+{
+    // This might not even be necessary but it's sorta here for safety 
+    if (endBlockFound)
+    {
+        return 0;
+    }
+
+    // If this block was already checked, nip it off at the bud to save computation time 
+    // This could technically be checked before it's even called, but the performance
+    //      difference is negligible and this is seemingly easier for me to implement 
+    if (checkedIndexes.includes(currIndex))
+    {        
+        return 0;
+    }
+
+
+    // Making this a checked index and shading it in to signify so 
+    checkedIndexes.push(currIndex);
+
+    if (currIndex !== startBlockIndex)
+    {        
+        gridItems[currIndex].classList.toggle("gray");
+    }
+
+    // * Checking for the goal 
+
+    // ! Todo - Make it alternate directions so it doesn't always just check left 
+    // Making sure it's not in the left column 
+    // CHecking to make sure it's not the first element in the row 
+    if (currIndex % 20 !== 0)
+    {
+        // This check has to be nested, otherwise an out of bounds error will occur 
+        if (gridItems[currIndex - 1].classList.contains("red"))
+        {            
+            endBlockFound = true;
+            return 0;
+        }
+    }
+
+    // Making sure it's not in the right column 
+    if ((currIndex + 1) % 20 !== 0)
+    {        
+        // Checking right 
+        if (gridItems[currIndex + 1].classList.contains("red"))
+        {
+            endBlockFound = true;
+            return 0;
+        }
+    }
+
+    // Making sure it's not in the top row 
+    if(!(currIndex < 20))
+    {        
+        // Checking up 
+        if (gridItems[currIndex - 20].classList.contains("red"))
+        {
+            endBlockFound = true;
+            return 0;
+        }
+    }
+
+    // Making sure it's not in the last row 
+    if (!(currIndex >= 380))
+    {
+        // Checking down 
+        if (gridItems[currIndex + 20].classList.contains("red"))
+        {
+            endBlockFound = true;
+            return 0;
+        }
+    }
+
+    // * Checking if surrounding blocks are valid, and if so, running this function again recursively
+
+    // Checking Left - Similar logic to above
+    if (currIndex % 20 !== 0)
+    {
+        if (gridItems[currIndex - 1].classList.contains("black"))
+        {
+            checkedIndexes.push(currIndex - 1);
+        }
+
+        else 
+        {
+            setTimeout(checkSurroundings, 100, gridItems, currIndex - 1);
+        }
+    }
+
+    // Checking Right  - Similar logic to above
+    // Making sure it's not in the right column 
+    if ((currIndex + 1) % 20 !== 0)
+    {        
+        // Checking right 
+        if (gridItems[currIndex + 1].classList.contains("black"))
+        {
+            checkedIndexes.push(currIndex + 1);
+        }
+
+        else 
+        {
+            setTimeout(checkSurroundings, 100, gridItems, currIndex + 1);
+        }
+    }
+
+    // Checking Up - Similar logic to above
+    if(!(currIndex < 20))
+    {        
+        // Checking up 
+        if (gridItems[currIndex - 20].classList.contains("black"))
+        {
+            checkedIndexes.push(currIndex - 20);
+        }
+
+        else 
+        {
+            setTimeout(checkSurroundings, 100, gridItems, currIndex - 20);
+        }
+    }
+
+    // Checking Down  - Similar logic to above
+    if (!(currIndex >= 380))
+    {
+        // Checking down 
+        if (gridItems[currIndex + 20].classList.contains("black"))
+        {
+            checkedIndexes.push(currIndex + 20);
+        }
+
+        else 
+        {
+            setTimeout(checkSurroundings, 100, gridItems, currIndex + 20);
+        }
+    }
+}
+
+// ! A* Algorithm
 var startIndex, endIndex;
 
 // For usage with aStar pathfinder - Each node has cost values, etc. associated with it for heuristic reasons 
@@ -343,51 +469,6 @@ class costNode
         this.originalIndex = originalIndex;
 
         this.totalCost = Math.pow(this.distanceFromEnd, 2);
-    }
-}
-
-// Checks to make sure grid has both a beginning and end spot 
-// This could probably be far optimized, but by all means it should still work well 
-function validateGrid()
-{
-    let gridItems = document.querySelectorAll(".gridItem");
-
-    let blue = false, red = false;
-
-    for (let i = 0; i < gridItems.length; i++)
-    {
-        if (gridItems[i].classList.contains("blue"))
-        {
-            blue = true;
-        }
-
-        else if (gridItems[i].classList.contains("red"))
-        {
-            red = true;
-        }
-
-        if (blue && red)
-        {
-            return true;
-        }
-    }
-
-    if (blue)
-    {
-        alert("No end block!");
-        return false;
-    }
-
-    else if (red)
-    {
-        alert("No start block!");
-        return false;
-    }
-
-    else 
-    {
-        alert("No start OR end block!");
-        return false;
     }
 }
 
@@ -407,7 +488,6 @@ function getLowestCostIndex(openNodes)
     return openNodes[lowestCostIndex].originalIndex;
 }
 
-// ! Goes through diagonal walls sometimes (kinda funny though lol)
 function aStarPathfinder()
 {
     // Getting list of blocks 
@@ -632,144 +712,7 @@ function aStarPathfinder()
 
 }
 
-var startBlockIndex; 
-
-function checkSurroundings(gridItems, currIndex)
-{
-    // This might not even be necessary but it's sorta here for safety 
-    if (endBlockFound)
-    {
-        return 0;
-    }
-
-    // If this block was already checked, nip it off at the bud to save computation time 
-    // This could technically be checked before it's even called, but the performance
-    //      difference is negligible and this is seemingly easier for me to implement 
-    if (checkedIndexes.includes(currIndex))
-    {        
-        return 0;
-    }
-
-
-    // Making this a checked index and shading it in to signify so 
-    checkedIndexes.push(currIndex);
-
-    if (currIndex !== startBlockIndex)
-    {        
-        gridItems[currIndex].classList.toggle("gray");
-    }
-
-    // * Checking for the goal 
-
-    // ! Todo - Make it alternate directions so it doesn't always just check left 
-    // Making sure it's not in the left column 
-    // CHecking to make sure it's not the first element in the row 
-    if (currIndex % 20 !== 0)
-    {
-        // This check has to be nested, otherwise an out of bounds error will occur 
-        if (gridItems[currIndex - 1].classList.contains("red"))
-        {            
-            endBlockFound = true;
-            return 0;
-        }
-    }
-
-    // Making sure it's not in the right column 
-    if ((currIndex + 1) % 20 !== 0)
-    {        
-        // Checking right 
-        if (gridItems[currIndex + 1].classList.contains("red"))
-        {
-            endBlockFound = true;
-            return 0;
-        }
-    }
-
-    // Making sure it's not in the top row 
-    if(!(currIndex < 20))
-    {        
-        // Checking up 
-        if (gridItems[currIndex - 20].classList.contains("red"))
-        {
-            endBlockFound = true;
-            return 0;
-        }
-    }
-
-    // Making sure it's not in the last row 
-    if (!(currIndex >= 380))
-    {
-        // Checking down 
-        if (gridItems[currIndex + 20].classList.contains("red"))
-        {
-            endBlockFound = true;
-            return 0;
-        }
-    }
-
-    // * Checking if surrounding blocks are valid, and if so, running this function again recursively
-
-    // Checking Left - Similar logic to above
-    if (currIndex % 20 !== 0)
-    {
-        if (gridItems[currIndex - 1].classList.contains("black"))
-        {
-            checkedIndexes.push(currIndex - 1);
-        }
-
-        else 
-        {
-            setTimeout(checkSurroundings, 100, gridItems, currIndex - 1);
-        }
-    }
-
-    // Checking Right  - Similar logic to above
-    // Making sure it's not in the right column 
-    if ((currIndex + 1) % 20 !== 0)
-    {        
-        // Checking right 
-        if (gridItems[currIndex + 1].classList.contains("black"))
-        {
-            checkedIndexes.push(currIndex + 1);
-        }
-
-        else 
-        {
-            setTimeout(checkSurroundings, 100, gridItems, currIndex + 1);
-        }
-    }
-
-    // Checking Up - Similar logic to above
-    if(!(currIndex < 20))
-    {        
-        // Checking up 
-        if (gridItems[currIndex - 20].classList.contains("black"))
-        {
-            checkedIndexes.push(currIndex - 20);
-        }
-
-        else 
-        {
-            setTimeout(checkSurroundings, 100, gridItems, currIndex - 20);
-        }
-    }
-
-    // Checking Down  - Similar logic to above
-    if (!(currIndex >= 380))
-    {
-        // Checking down 
-        if (gridItems[currIndex + 20].classList.contains("black"))
-        {
-            checkedIndexes.push(currIndex + 20);
-        }
-
-        else 
-        {
-            setTimeout(checkSurroundings, 100, gridItems, currIndex + 20);
-        }
-    }
-}
-
+// ! "Generic" Utility Functions 
 function getDistanceToStartFromIndex(index)
 {
     // Note - These are indexed by one, hence the occasional +1's 
@@ -792,6 +735,51 @@ function getDistanceToEndFromIndex(index)
     let passedIndexColumn = (index % 20) + 1;
 
     return Math.sqrt(Math.pow(endIndexRow - passedIndexRow, 2) + Math.pow(endIndexColumn - passedIndexColumn, 2));
+}
+
+// Checks to make sure grid has both a beginning and end spot 
+// This could probably be far optimized, but by all means it should still work well 
+function validateGrid()
+{
+    let gridItems = document.querySelectorAll(".gridItem");
+
+    let blue = false, red = false;
+
+    for (let i = 0; i < gridItems.length; i++)
+    {
+        if (gridItems[i].classList.contains("blue"))
+        {
+            blue = true;
+        }
+
+        else if (gridItems[i].classList.contains("red"))
+        {
+            red = true;
+        }
+
+        if (blue && red)
+        {
+            return true;
+        }
+    }
+
+    if (blue)
+    {
+        alert("No end block!");
+        return false;
+    }
+
+    else if (red)
+    {
+        alert("No start block!");
+        return false;
+    }
+
+    else 
+    {
+        alert("No start OR end block!");
+        return false;
+    }
 }
 
 // Returns an index (if a begin block is found) or -1 if none is found 
