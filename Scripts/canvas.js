@@ -334,15 +334,77 @@ function dijkstraPathfinder()
 var startIndex, endIndex;
 
 // For usage with aStar pathfinder - Each node has cost values, etc. associated with it for heuristic reasons 
-class aStarNode
+class costNode
 {
-    aStarNode(distanceFromStart, distanceFromEnd)
+    constructor(distanceFromStart, distanceFromEnd, originalIndex)
     {
         this.distanceFromStart = distanceFromStart;
         this.distanceFromEnd = distanceFromEnd;
 
         this.totalCost = distanceFromStart + distanceFromEnd;
+
+        this.originalIndex = originalIndex;
     }
+}
+
+// Checks to make sure grid has both a beginning and end spot 
+// This could probably be far optimized, but by all means it should still work well 
+function validateGrid()
+{
+    let gridItems = document.querySelectorAll(".gridItem");
+
+    let blue = false, red = false;
+
+    for (let i = 0; i < gridItems.length; i++)
+    {
+        if (gridItems[i].classList.contains("blue"))
+        {
+            blue = true;
+        }
+
+        else if (gridItems[i].classList.contains("red"))
+        {
+            red = true;
+        }
+
+        if (blue && red)
+        {
+            return true;
+        }
+    }
+
+    if (blue)
+    {
+        alert("No end block!");
+        return false;
+    }
+
+    else if (red)
+    {
+        alert("No start block!");
+        return false;
+    }
+
+    else 
+    {
+        alert("No start OR end block!");
+        return false;
+    }
+}
+
+function getLowestCostIndex(openNodes)
+{
+    let lowestCostIndex = 0;
+
+    for (let i = 0; i < openNodes.length; i++)
+    {
+        if (openNodes[i].totalCost < openNodes[lowestCostIndex].totalCost)
+        {
+            lowestCostIndex = i;
+        }
+    }
+
+    return openNodes[lowestCostIndex].originalIndex;
 }
 
 function aStarPathfinder()
@@ -350,155 +412,187 @@ function aStarPathfinder()
     // Getting list of blocks 
     let gridItems = document.querySelectorAll(".gridItem");
 
-    // Checking to make sure it's a valid grid
+    if (!validateGrid())
+    {
+        // validateGrid already offers debug output 
+        return 0;
+    }
+
     startIndex = getStartBlockIndex(gridItems);
     endIndex = getEndBlockIndex(gridItems);
 
-    if (startIndex === -1)
+    // * Assigning a cost to every thing on the grid 
+    // Todo - Can be further optimized by only assigning a cost to elements when they are discovered
+    let costNodes = [];
+    for (let i = 0; i < gridItems.length; i++)
     {
-        alert("No start block!");
-        return 0;
+        costNodes[i] = new costNode(getDistanceToStartFromIndex(i), getDistanceToEndFromIndex(i), i);
     }
 
-    else if (endIndex === -1)
-    {
-        alert("No end block!");
-        return 0;
-    }
+    // * Declaring the list that holds the "currently being considered for exploration" nodes
+    // Putting the start node in there so it has somewhere to start 
+    let openNodes = [costNodes[startIndex]];
 
-    let endBlockFound = false;
-
-    let nodesList = [];
-
-    // * Constructing a list of nodes beforehand and figuring out their distance beforehand 
-    // * Basically just holds more data than just the index would 
-    for (let i = 0; i < 400; i++)
-    {
-        nodesList.push(new aStarNode(getDistanceToStartFromIndex(i), getDistanceToEndFromIndex(i)));
-    }
-
-    let openNodes = [new aStarNode(0, getDistanceToEndFromIndex(startIndex))];
+    // * Declaring the list that holds the "already been explored" nodes 
+    // This one doesn't have anything in it just yet 
     let closedNodes = [];
+    let isInClosedNodes;    
 
-    // Iterates through each block one by one 
-    while (!endBlockFound)
+    let escape = false;
+    
+    // * Main control loop that continues until an end block is found, selecting one block each time
+    setInterval(function()
     {
-        // Setting equal to what's basically a placeholder value that will likely get overwritten 
-        let currentLowestCostIndex = nodesList.indexOf(openNodes[0], 1);
+        console.log("Loop Iteration Start.");
 
-        // * Determining which one in openlist has the lowest cost 
-        for (let i = 0; i < nodesList.length; i++)
+        // * Getting the "cheapest" node 
+        // Worth noting that this returns the overall index, not the index in openNodes 
+        let lowestCostIndex = getLowestCostIndex(openNodes);
+        console.log("Lowest Cost Index: " + lowestCostIndex);
+
+        // Debug
+        if (openNodes.indexOf(costNodes[lowestCostIndex]) === -1)
         {
-            // ! nodesList[i] is apparently undefined here :^P 
-            if (openNodes.includes(nodesList[i]) && nodesList[i].totalCost < nodesList[currentLowestCostIndex].totalCost)
+            console.debug("Couldn't find current lowest cost node in the original costNodes list.");
+        }
+
+        // * Removing the "cheapest node" from openNodes and adding it to closedNodes
+        // Works by finding the original node given the index then finding it in openNodes using indexOf
+        closedNodes.push(costNodes[lowestCostIndex]);
+        openNodes.splice(openNodes.indexOf(costNodes[lowestCostIndex]), 1);
+
+        // * Greying in the current node 
+        gridItems[lowestCostIndex].style.backgroundColor = "gray";
+
+        // Resetting closedNodes shutdown variable
+        isInClosedNodes = false;
+
+        // * Adding surrounding nodes to the list of open nodes if they're not already closed, checking to make sure we're not going outside the canvas in each case 
+        // Left
+        if (lowestCostIndex % 20 !== 0)
+        {   
+            //  closedNodes takes a value directly from 
+            // ! This check is legit just never succeeding 
+            // If it's already in the closed list, don't even consider it 
+            if (closedNodes.includes(costNodes[lowestCostIndex - 1]))
             {
-                currentLowestCostIndex = i;
+                console.debug("Left node is already in closedNodes. Not considering.");
+                isInClosedNodes = true;
+            }
+
+            // If it's a wall, add it to closedNodes
+            if (gridItems[lowestCostIndex - 1].classList.contains("black") && !isInClosedNodes)
+            {
+                console.debug("Left node is a wall. Adding to closedNodes.");
+                closedNodes.push(costNodes[lowestCostIndex - 1]);
+            }
+
+            // Otherwise, it's valid, add it to open nodes 
+            else if (!isInClosedNodes)
+            {
+                console.debug("Left node is legitimate; Adding to openNodes.");
+                openNodes.push(costNodes[lowestCostIndex - 1]);
             }
         }
 
-        // * Making sure no repeats that are already in the closedList sneak in, and closing this one if it isn't already closed 
-        if (closedNodes.includes(nodesList[currentLowestCostIndex]))
-        {
-            continue;
-        }
+        // Resetting closedNodes shutdown variable
+        isInClosedNodes = false;
 
-        else 
-        {
-            // This could also probably go at the end of the algorithm but here seems more organized 
-            closedNodes.push(nodesList[currentLowestCostIndex]);
-        }
-
-        console.debug("Current lowest index value: " + currentLowestCostIndex);
-
-        // * Adding the ones around the current node if they're valid to the openNodes queue 
-        // Making sure the leftmost one is valid 
-        if (currentLowestCostIndex % 20 !== 0)
-        {
-            // If it's not a wall, add it to the open list
-            if (!nodesList[currentLowestCostIndex - 1].classList.includes("black"))
-            {
-                openNodes.push(nodesList[currentLowestCostIndex - 1]);
-            }
-
-            // Otherwise, add it to the closed list 
-            else 
-            {
-                closedNodes.push(nodesList[currentLowestCostIndex - 1]);
-            }
-        }
-
-        // Making sure the rightmost one is valid
-        if ((currentLowestCostIndex + 1) % 20 !== 0)
+        // Right 
+        if ((lowestCostIndex + 1) % 20 !== 0)
         {      
-            // If it's not a wall, add it to the open list
-            if (!nodesList[currentLowestCostIndex + 1].classList.includes("black"))
+            // If it's already in the closed list, don't even consider it 
+            if (closedNodes.includes(costNodes[lowestCostIndex + 1]))
             {
-                openNodes.push(nodesList[currentLowestCostIndex + 1]);
+                console.debug("Right node is already in closedNodes. Not considering.");
+                isInClosedNodes = true;
             }
 
-            // Otherwise, add it to the closed list 
-            else 
+            // If it's a wall, add it to closedNodes
+            if (gridItems[lowestCostIndex + 1].classList.contains("black") && !isInClosedNodes)
             {
-                closedNodes.push(nodesList[currentLowestCostIndex + 1]);
-            }
-        }
-
-        // Making sure the uppermost one is valid 
-        if(!(currentLowestCostIndex < 20))
-        {       
-            // If it's not a wall, add it to the open list
-            if (!nodesList[currentLowestCostIndex - 20].classList.includes("black"))
-            {
-                openNodes.push(nodesList[currentLowestCostIndex - 20]);
+                console.debug("Right node is a wall. Adding to closedNodes.");
+                closedNodes.push(costNodes[lowestCostIndex + 1]);
             }
 
-            // Otherwise, add it to the closed list 
-            else 
+            // Otherwise, it's valid, add it to open nodes 
+            else if (!isInClosedNodes)
             {
-                closedNodes.push(nodesList[currentLowestCostIndex - 20]);
+                console.debug("Right node is legitimate; Adding to openNodes.");
+                openNodes.push(costNodes[lowestCostIndex + 1]);
             }
         }
 
-        // Making sure the downmost one is valid 
-        if (!(currentLowestCostIndex >= 380))
+        // Resetting closedNodes shutdown variable
+        isInClosedNodes = false;
+
+        // Up 
+        if(!(lowestCostIndex < 20))
+        {     
+            // If it's already in the closed list, don't even consider it 
+            if (closedNodes.includes(costNodes[lowestCostIndex - 20]))
+            {
+                console.debug("Up node is already in closedNodes. Not considering.");
+                isInClosedNodes = true;
+            }
+
+            // If it's a wall, add it to closedNodes
+            if (gridItems[lowestCostIndex - 20].classList.contains("black") && !isInClosedNodes)
+            {
+                console.debug("Up node is a wall. Adding to closedNodes.");
+                closedNodes.push(costNodes[lowestCostIndex - 20]);
+            }
+
+            // Otherwise, it's valid, add it to open nodes 
+            else if (!isInClosedNodes)
+            {
+                console.debug("Up node is legitimate; Adding to openNodes.");
+                openNodes.push(costNodes[lowestCostIndex - 20]);
+            }
+        }
+
+        // Resetting closedNodes shutdown variable
+        isInClosedNodes = false;
+
+        // Down 
+        if (!(lowestCostIndex >= 380))
         {
-            // If it's not a wall, add it to the open list
-            if (!nodesList[currentLowestCostIndex + 20].classList.includes("black"))
+            // If it's already in the closed list, don't even consider it 
+            if (closedNodes.includes(costNodes[lowestCostIndex + 20]))
             {
-                openNodes.push(nodesList[currentLowestCostIndex + 20]);
+                console.debug("Down node is already in closedNodes. Not considering.");
+                isInClosedNodes = true;
             }
 
-            // Otherwise, add it to the closed list 
-            else 
+            // If it's a wall, add it to closedNodes
+            if (gridItems[lowestCostIndex + 20].classList.contains("black") && !isInClosedNodes)
             {
-                closedNodes.push(nodesList[currentLowestCostIndex + 20]);
+                console.debug("Down node is a wall. Adding to closedNodes.");
+                closedNodes.push(costNodes[lowestCostIndex + 20]);
             }
-        }
-    }
-}
+            
+            // Otherwise, it's valid, add it to open nodes 
+            else if (!isInClosedNodes)
+            {
+                console.debug("Down node is legitimate; Adding to openNodes.");
+                openNodes.push(costNodes[lowestCostIndex + 20]);
+            }
+        }  
 
-function getDistanceToStartFromIndex(index)
-{
-    // Note - These are indexed by one, hence the occasional +1's 
-    let startIndexRow = (startIndex / 20) + 1;
-    let startIndexColumn = (startIndex % 20) + 1;
+        console.debug("Current openNodes length: " + openNodes.length);
+        console.log("Current closedNodes length: " + closedNodes.length);
 
-    let passedIndexRow = (index / 20) + 1;
-    let passedIndexColumn = (index % 20) + 1;
+        // * Making sure nothing that's in closedNodes is in openNodes
+        // Todo - Remove the need for this because it's pretty inefficient 
+        for (let i = 0; i < openNodes.length; i++)
+        {
+            if (closedNodes.includes(openNodes[i]))
+            {
+                openNodes.splice(i, 1);
+            }
+        } 
 
-    return Math.sqrt(Math.pow(startIndexRow - passedIndexRow, 2) + Math.pow(startIndexColumn - passedIndexColumn, 2));
-}
-
-function getDistanceToEndFromIndex(index)
-{
-    // Note - These are indexed by one, hence the occasional +1's 
-    let endIndexRow = (endIndex / 20) + 1;
-    let endIndexColumn = (endIndex % 20) + 1;
-
-    let passedIndexRow = (index / 20) + 1;
-    let passedIndexColumn = (index % 20) + 1;
-
-    return Math.sqrt(Math.pow(endIndexRow - passedIndexRow, 2) + Math.pow(endIndexColumn - passedIndexColumn, 2));
+    }, 50);
 }
 
 var startBlockIndex; 
@@ -637,6 +731,30 @@ function checkSurroundings(gridItems, currIndex)
             setTimeout(checkSurroundings, 100, gridItems, currIndex + 20);
         }
     }
+}
+
+function getDistanceToStartFromIndex(index)
+{
+    // Note - These are indexed by one, hence the occasional +1's 
+    let startIndexRow = (startIndex / 20) + 1;
+    let startIndexColumn = (startIndex % 20) + 1;
+
+    let passedIndexRow = (index / 20) + 1;
+    let passedIndexColumn = (index % 20) + 1;
+
+    return Math.sqrt(Math.pow(startIndexRow - passedIndexRow, 2) + Math.pow(startIndexColumn - passedIndexColumn, 2));
+}
+
+function getDistanceToEndFromIndex(index)
+{
+    // Note - These are indexed by one, hence the occasional +1's 
+    let endIndexRow = (endIndex / 20) + 1;
+    let endIndexColumn = (endIndex % 20) + 1;
+
+    let passedIndexRow = (index / 20) + 1;
+    let passedIndexColumn = (index % 20) + 1;
+
+    return Math.sqrt(Math.pow(endIndexRow - passedIndexRow, 2) + Math.pow(endIndexColumn - passedIndexColumn, 2));
 }
 
 // Returns an index (if a begin block is found) or -1 if none is found 
