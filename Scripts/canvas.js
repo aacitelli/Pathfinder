@@ -340,10 +340,9 @@ class costNode
     {
         this.distanceFromStart = distanceFromStart;
         this.distanceFromEnd = distanceFromEnd;
-
-        this.totalCost = distanceFromStart + distanceFromEnd;
-
         this.originalIndex = originalIndex;
+
+        this.totalCost = this.distanceFromEnd;
     }
 }
 
@@ -396,7 +395,8 @@ function getLowestCostIndex(openNodes)
 {
     let lowestCostIndex = 0;
 
-    for (let i = 0; i < openNodes.length; i++)
+    // Starts at 1 because 0 is assumed to be the lowest unless proven wrong 
+    for (let i = 1; i < openNodes.length; i++)
     {
         if (openNodes[i].totalCost < openNodes[lowestCostIndex].totalCost)
         {
@@ -407,6 +407,7 @@ function getLowestCostIndex(openNodes)
     return openNodes[lowestCostIndex].originalIndex;
 }
 
+// ! Goes through diagonal walls sometimes (kinda funny though lol)
 function aStarPathfinder()
 {
     // Getting list of blocks 
@@ -439,9 +440,9 @@ function aStarPathfinder()
     let isInClosedNodes;    
 
     let escape = false;
-    
+         
     // * Main control loop that continues until an end block is found, selecting one block each time
-    setInterval(function()
+    let timerLoop = setInterval(function()
     {
         console.log("Loop Iteration Start.");
 
@@ -481,10 +482,16 @@ function aStarPathfinder()
             }
 
             // If it's a wall, add it to closedNodes
-            if (gridItems[lowestCostIndex - 1].classList.contains("black") && !isInClosedNodes)
+            else if (gridItems[lowestCostIndex - 1].classList.contains("black") && !isInClosedNodes)
             {
                 console.debug("Left node is a wall. Adding to closedNodes.");
                 closedNodes.push(costNodes[lowestCostIndex - 1]);
+            }
+
+            else if (gridItems[lowestCostIndex - 1].classList.contains("red"))
+            {
+                clearInterval(timerLoop);
+                return 0;
             }
 
             // Otherwise, it's valid, add it to open nodes 
@@ -509,10 +516,16 @@ function aStarPathfinder()
             }
 
             // If it's a wall, add it to closedNodes
-            if (gridItems[lowestCostIndex + 1].classList.contains("black") && !isInClosedNodes)
+            else if (gridItems[lowestCostIndex + 1].classList.contains("black") && !isInClosedNodes)
             {
                 console.debug("Right node is a wall. Adding to closedNodes.");
                 closedNodes.push(costNodes[lowestCostIndex + 1]);
+            }
+
+            else if (gridItems[lowestCostIndex + 1].classList.contains("red"))
+            {
+                clearInterval(timerLoop);
+                return 0;
             }
 
             // Otherwise, it's valid, add it to open nodes 
@@ -537,10 +550,16 @@ function aStarPathfinder()
             }
 
             // If it's a wall, add it to closedNodes
-            if (gridItems[lowestCostIndex - 20].classList.contains("black") && !isInClosedNodes)
+            else if (gridItems[lowestCostIndex - 20].classList.contains("black") && !isInClosedNodes)
             {
                 console.debug("Up node is a wall. Adding to closedNodes.");
                 closedNodes.push(costNodes[lowestCostIndex - 20]);
+            }
+
+            else if (gridItems[lowestCostIndex - 20].classList.contains("red"))
+            {
+                clearInterval(timerLoop);
+                return 0;
             }
 
             // Otherwise, it's valid, add it to open nodes 
@@ -565,12 +584,18 @@ function aStarPathfinder()
             }
 
             // If it's a wall, add it to closedNodes
-            if (gridItems[lowestCostIndex + 20].classList.contains("black") && !isInClosedNodes)
+            else if (gridItems[lowestCostIndex + 20].classList.contains("black") && !isInClosedNodes)
             {
                 console.debug("Down node is a wall. Adding to closedNodes.");
                 closedNodes.push(costNodes[lowestCostIndex + 20]);
             }
-            
+
+            else if (gridItems[lowestCostIndex + 20].classList.contains("red"))
+            {
+                escape = true;
+                return 0;
+            }
+
             // Otherwise, it's valid, add it to open nodes 
             else if (!isInClosedNodes)
             {
@@ -592,7 +617,7 @@ function aStarPathfinder()
             }
         } 
 
-    }, 50);
+    }, 100);
 }
 
 var startBlockIndex; 
