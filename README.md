@@ -8,8 +8,6 @@ The algorithms used differ fundamentally. Dijkstra's algorithm doesn't utilize a
 
 Each algorithm operates on a timer, where each algorithm "step" occurs after a predefined interval (100 milliseconds, I believe). This feature allows the algorithm's selection process to be much more transparent, as it isn't just instant. 
 
-## Algorithms Overview
-
 Dijkstra's algorithm works by recursively exploring every node's neighbors, then their neighbors, and so on, without any prioritization. 
 
 The "Greedy" algorithm always explores the node that's closest to the endpoint. This often results in a "circular" sort of pattern. This has the advantage of being much smarter than Dijkstra's algorithm, and is much faster when there are few obstacles. 
